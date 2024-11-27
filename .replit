@@ -1,6 +1,7 @@
 run = "python web_app.py"
 language = "python3"
 entrypoint = "web_app.py"
+modules = ["python-3.12"]
 
 [nix]
 channel = "stable-23_11"
