@@ -1,0 +1,41 @@
+run = "python web_app.py"
+language = "python3"
+entrypoint = "web_app.py"
+
+[nix]
+channel = "stable-23_11"
+
+[deployment]
+run = ["python", "web_app.py"]
+deploymentTarget = "cloudrun"
+
+[env]
+PYTHONPATH = "${PYTHONPATH}:${REPL_HOME}"
+PYTHONUNBUFFERED = "1"
+DISPLAY = ":99"
+CHROME_BIN = "${REPL_HOME}/.config/chromium/chrome"
+CHROMEDRIVER_PATH = "${REPL_HOME}/.config/chromium/chromedriver"
+
+[packager]
+language = "python3"
+ignoredPackages = ["unit_tests"]
+
+[packager.features]
+enabledForHosting = true
+packageSearch = true
+guessImports = true
+
+[languages.python3]
+pattern = "**/*.py"
+syntax = "python"
+version = "3.12"
+
+[languages.python3.languageServer]
+start = ["pylsp"]
+
+[unitTest]
+language = "python3"
+
+[auth]
+pageEnabled = false
+buttonEnabled = false
