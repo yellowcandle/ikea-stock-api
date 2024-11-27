@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+ikea_stock_api/__init__.py
+ikea_stock_api.egg-info/PKG-INFO
+ikea_stock_api.egg-info/SOURCES.txt
+ikea_stock_api.egg-info/dependency_links.txt
+ikea_stock_api.egg-info/requires.txt
+ikea_stock_api.egg-info/top_level.txt

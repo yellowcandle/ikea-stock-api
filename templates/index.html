@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IKEA 大碟情報</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .product-img {
+            max-width: 80px;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .product-img:hover {
+            transform: scale(1.1);
+        }
+        .table-responsive {
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+        .stock-available {
+            color: #198754;
+            font-weight: bold;
+            background-color: #d1e7dd;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+        }
+        .stock-unavailable {
+            color: #dc3545;
+            background-color: #f8d7da;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+        }
+        th {
+            white-space: nowrap;
+            background-color: #212529 !important;
+            color: white !important;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            padding: 1rem !important;
+        }
+        .table > :not(caption) > * > * {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        .product-name {
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 0.25rem;
+        }
+        .product-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .product-link:hover {
+            color: #0d6efd;
+        }
+        .product-link:hover .product-name {
+            color: #0d6efd;
+        }
+        .description {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-bottom: 0;
+        }
+        .price {
+            font-weight: 600;
+            color: #198754;
+            font-size: 1.1em;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(0,0,0,.02);
+        }
+        .refresh-info {
+            font-size: 0.9em;
+            color: #6c757d;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .refresh-note {
+            font-style: italic;
+            color: #6c757d;
+            font-size: 0.85em;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .header-container {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            z-index: 100;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header-container">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="mb-0">IKEA 大碟情報</h1>
+                <div class="d-flex align-items-center">
+                    <div class="refresh-info me-3">
+                        <div id="lastUpdated">Last updated: {{ last_update }}</div>
+                        <div id="nextUpdate">Next update: {{ next_update }}</div>
+                        <div class="refresh-note">Stock data is refreshed every 4 hours</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid py-4">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product Details</th>
+                        <th>Price</th>
+                        <th>Warehouse</th>
+                        <th>Causeway Bay</th>
+                        <th>Kowloon Bay</th>
+                        <th>Macau Taipa</th>
+                        <th>Shatin</th>
+                        <th>Tsuen Wan</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                    {% for product in products %}
+                    <tr>
+                        <td>
+                            <a href="{{ product.url }}" target="_blank" class="product-link">
+                                {% if product.image_path %}
+                                <img src="{{ product.image_path }}" alt="{{ product.name }}" class="product-img">
+                                {% else %}
+                                <div class="text-muted">No image</div>
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{{ product.url }}" target="_blank" class="product-link">
+                                <div class="product-name">{{ product.name }}</div>
+                                <div class="description">{{ product.description }}</div>
+                            </a>
+                        </td>
+                        <td class="price">{{ product.price }}</td>
+                        {% for store in ['Warehouse', 'Causeway Bay', 'Kowloon Bay', 'Macau Taipa', 'Shatin', 'Tsuen Wan'] %}
+                        <td>
+                            {% if product.stock[store] > 0 %}
+                            <span class="stock-available">{{ product.stock[store] }}</span>
+                            {% else %}
+                            <span class="stock-unavailable">Out of stock</span>
+                            {% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function refreshData() {
+            const refreshBtn = document.querySelector('.btn-refresh');
+            const btnText = refreshBtn.querySelector('span');
+            refreshBtn.disabled = true;
+            btnText.textContent = 'Refreshing...';
+            document.body.classList.add('loading');
+
+            fetch('/refresh')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('lastUpdated').textContent = `Last updated: ${data.last_update}`;
+                    document.getElementById('nextUpdate').textContent = `Next update: ${data.next_update}`;
+                    const tbody = document.getElementById('productTableBody');
+                    tbody.innerHTML = data.products.map(product => `
+                        <tr>
+                            <td>
+                                <a href="${product.url}" target="_blank" class="product-link">
+                                    ${product.image_path ? 
+                                        `<img src="${product.image_path}" alt="${product.name}" class="product-img">` :
+                                        '<div class="text-muted">No image</div>'}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="${product.url}" target="_blank" class="product-link">
+                                    <div class="product-name">${product.name}</div>
+                                    <div class="description">${product.description}</div>
+                                </a>
+                            </td>
+                            <td class="price">${product.price}</td>
+                            ${['Warehouse', 'Causeway Bay', 'Kowloon Bay', 'Macau Taipa', 'Shatin', 'Tsuen Wan']
+                                .map(store => `
+                                    <td>
+                                        ${product.stock[store] > 0 ?
+                                            `<span class="stock-available">${product.stock[store]}</span>` :
+                                            '<span class="stock-unavailable">Out of stock</span>'}
+                                    </td>
+                                `).join('')}
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error refreshing data:', error);
+                    alert('Failed to refresh data. Please try again.');
+                })
+                .finally(() => {
+                    refreshBtn.disabled = false;
+                    btnText.textContent = 'Refresh';
+                    document.body.classList.remove('loading');
+                });
+        }
+    </script>
+</body>
+</html>
