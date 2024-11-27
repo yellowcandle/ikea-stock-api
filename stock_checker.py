@@ -8,6 +8,7 @@ from datetime import datetime
 from firecrawl import FirecrawlApp
 from models import StockInfo, Product
 from csv_handler import CSVHandler
+from config import FIRECRAWL_API_KEY
 
 class StockChecker:
     def __init__(self, api_key: str):
@@ -133,3 +134,16 @@ class StockChecker:
                     return {url: StockInfo.from_dict(stock_data) 
                            for url, stock_data in data['results'].items()}
         return None
+
+async def main():
+    checker = StockChecker(FIRECRAWL_API_KEY)
+    try:
+        results = await checker.check_stock()
+        print("\nStock check completed. Results saved to stock_results.json")
+        return results
+    except KeyboardInterrupt:
+        print("\nScript interrupted by user")
+        raise
+
+if __name__ == "__main__":
+    asyncio.run(main())
